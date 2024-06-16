@@ -13,7 +13,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "wordsearches")
+@Document(collection = "WordSearch")
 public class WordSearch {
     @Id
     private String id;

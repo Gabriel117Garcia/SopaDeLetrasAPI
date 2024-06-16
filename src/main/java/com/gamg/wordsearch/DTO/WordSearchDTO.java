@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.List;
 
@@ -15,13 +16,14 @@ import java.util.List;
 @Document("WordSearch")
 @Data
 public class WordSearchDTO {
-    @NonNull
+    private Object id;
+    @NotNull
     @Size(min = 1, max = 20, message = "Las filas deben estar entre 1 y 20")
     private int rows;
-    @NonNull
+    @NotNull
     @Size(min = 1, max = 20, message = "Las columnas deben estar entre 1 y 20")
     private int cols;
-    @NonNull
+    @NotNull
     @Size(min = 1, message = "Debe haber al menos una palabra")
     private List<String> words;
 }

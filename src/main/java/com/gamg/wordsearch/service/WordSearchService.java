@@ -1,13 +1,16 @@
 package com.gamg.wordsearch.service;
+import com.gamg.wordsearch.DTO.WordSearchDTO;
 import com.gamg.wordsearch.MongoRepository.WordSearchRepository;
 import com.gamg.wordsearch.config.InvalidRequestException;
 import com.gamg.wordsearch.config.ResourceNotFoundException;
+import com.gamg.wordsearch.mapper.IWordSearchMapper;
 import com.gamg.wordsearch.model.WordSearch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 @Service
 public class WordSearchService {
@@ -15,32 +18,53 @@ public class WordSearchService {
     @Autowired
     private WordSearchRepository wordSearchRepository;
 
-    public List<WordSearch> getAllWordSearches() {
-        return wordSearchRepository.findAll();
+    @Autowired
+    private IWordSearchMapper wordSearchMapper;
+
+    public List<WordSearchDTO> getAllWordSearches() {
+        List<WordSearch> wordSearchList = wordSearchRepository.findAll();
+
+        return wordSearchMapper.toDTOs(wordSearchList);
     }
 
-    public Optional<WordSearch> getWordSearchById(String id) {
-        return wordSearchRepository.findById(id);
+    public Optional<WordSearchDTO> getWordSearchById(String id) {
+        Optional<WordSearch> wordSearchOptional = wordSearchRepository.findById(id);
+        if (wordSearchOptional.isPresent()) {
+            WordSearch wordSearch = wordSearchOptional.get();
+            WordSearchDTO wordSearchDTO = wordSearchMapper.toDTO(wordSearch);
+            return Optional.of(wordSearchDTO);
+        } else {
+            return Optional.empty();
+        }
+
     }
 
-    public WordSearch createWordSearch(WordSearch wordSearch) throws InvalidRequestException {
+    public WordSearchDTO createWordSearch(WordSearchDTO wordSearchDTO) throws InvalidRequestException {
+        // Convertir de DTO a Modelo
+        WordSearch wordSearch = wordSearchMapper.toModel(wordSearchDTO);
+        // Validar filas y columnas
         if (wordSearch.getRows() <= 0 || wordSearch.getCols() <= 0) {
             throw new InvalidRequestException("Rows and columns must be positive numbers.");
         }
+        // Generar la sopa de letras
         wordSearch.setGrid(generateGrid(wordSearch.getRows(), wordSearch.getCols(), wordSearch.getWords()));
-        return wordSearchRepository.save(wordSearch);
+        // Guardar la entidad en la base de datos
+        wordSearch = wordSearchRepository.save(wordSearch);
+        // Convertir de Entidad a DTO y retornar
+        return wordSearchMapper.toDTO(wordSearch);
     }
 
-    public WordSearch updateWordSearch(String id, WordSearch wordSearchDetails) {
+
+    public WordSearchDTO updateWordSearch(String id, WordSearchDTO wordSearchDTO) {
         return wordSearchRepository.findById(id)
-                .map(wordSearch -> {
-                    wordSearch.setRows(wordSearchDetails.getRows());
-                    wordSearch.setCols(wordSearchDetails.getCols());
-                    wordSearch.setGrid(generateGrid(wordSearchDetails.getRows(), wordSearchDetails.getCols(), wordSearchDetails.getWords()));
-                    wordSearch.setWords(wordSearchDetails.getWords());
-                    return wordSearchRepository.save(wordSearch);
+                .map(existingWordSearch -> {
+                    WordSearch updatedWordSearch = wordSearchMapper.toModel(wordSearchDTO);
+                    updatedWordSearch.setId(existingWordSearch.getId());
+                    wordSearchRepository.save(updatedWordSearch);
+                    return wordSearchMapper.toDTO(updatedWordSearch);
                 }).orElseThrow(() -> new ResourceNotFoundException("WordSearch not found with id " + id));
     }
+
 
     public void deleteWordSearch(String id) {
         if (!wordSearchRepository.existsById(id)) {
