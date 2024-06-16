@@ -3,12 +3,14 @@ import com.gamg.wordsearch.DTO.WordSearchDTO;
 import com.gamg.wordsearch.config.InvalidRequestException;
 import com.gamg.wordsearch.model.WordSearch;
 import com.gamg.wordsearch.service.WordSearchService;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/Wordsearch")
@@ -18,15 +20,19 @@ public class WordSearchController {
     private WordSearchService wordSearchService;
 
     @GetMapping("/Wordsearch/all")
-    public List<WordSearchDTO> getAllWordSearches() {
-        return wordSearchService.getAllWordSearches();
+    public ResponseEntity<List<WordSearchDTO>> getMangas() {
+        return new ResponseEntity<>(wordSearchService.getAllWordSearches(), HttpStatus.OK);
     }
 
     @GetMapping("/Wordsearch/{id}")
     public ResponseEntity<WordSearchDTO> getWordSearchById(@PathVariable String id) {
-        return wordSearchService.getWordSearchById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        Optional<WordSearchDTO> wordsearch = wordSearchService.getWordSearchById(id);
+        ResponseEntity<WordSearchDTO> result = ResponseEntity.notFound().build();
+
+        if (wordsearch.isPresent()) {
+            result = ResponseEntity.ok(wordsearch.get());
+        }
+        return result;
     }
 
     @PostMapping("/Wordsearch/create")
@@ -36,12 +42,12 @@ public class WordSearchController {
 
     @PutMapping("/Wordsearch/update/{id}")
     public ResponseEntity<WordSearchDTO> updateWordSearch(@PathVariable String id, @Valid @RequestBody WordSearchDTO wordSearchDTO) {
-        wordSearchService.updateWordSearch(id, wordSearchDTO);
+        wordSearchService.updateWordSearch(wordSearchDTO);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/Wordsearch/delete/{id}")
-    public ResponseEntity<Void> deleteWordSearch(@PathVariable String id) {
+    public ResponseEntity<Void> deleteWordSearch(@PathVariable ObjectId id) {
         wordSearchService.deleteWordSearch(id);
         return ResponseEntity.noContent().build();
     }

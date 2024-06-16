@@ -5,12 +5,13 @@ import com.gamg.wordsearch.config.InvalidRequestException;
 import com.gamg.wordsearch.config.ResourceNotFoundException;
 import com.gamg.wordsearch.mapper.IWordSearchMapper;
 import com.gamg.wordsearch.model.WordSearch;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
-import java.util.stream.Collectors;
+
 
 @Service
 public class WordSearchService {
@@ -40,37 +41,23 @@ public class WordSearchService {
     }
 
     public WordSearchDTO createWordSearch(WordSearchDTO wordSearchDTO) throws InvalidRequestException {
-        // Convertir de DTO a Modelo
         WordSearch wordSearch = wordSearchMapper.toModel(wordSearchDTO);
-        // Validar filas y columnas
-        if (wordSearch.getRows() <= 0 || wordSearch.getCols() <= 0) {
-            throw new InvalidRequestException("Rows and columns must be positive numbers.");
-        }
-        // Generar la sopa de letras
-        wordSearch.setGrid(generateGrid(wordSearch.getRows(), wordSearch.getCols(), wordSearch.getWords()));
-        // Guardar la entidad en la base de datos
         wordSearch = wordSearchRepository.save(wordSearch);
-        // Convertir de Entidad a DTO y retornar
         return wordSearchMapper.toDTO(wordSearch);
     }
 
 
-    public WordSearchDTO updateWordSearch(String id, WordSearchDTO wordSearchDTO) {
-        return wordSearchRepository.findById(id)
-                .map(existingWordSearch -> {
-                    WordSearch updatedWordSearch = wordSearchMapper.toModel(wordSearchDTO);
-                    updatedWordSearch.setId(existingWordSearch.getId());
-                    wordSearchRepository.save(updatedWordSearch);
-                    return wordSearchMapper.toDTO(updatedWordSearch);
-                }).orElseThrow(() -> new ResourceNotFoundException("WordSearch not found with id " + id));
+    public void updateWordSearch(WordSearchDTO wordSearchDTO) {
+        WordSearch wordSearch = wordSearchMapper.toModel(wordSearchDTO);
+        wordSearchRepository.save(wordSearch);
     }
 
 
-    public void deleteWordSearch(String id) {
-        if (!wordSearchRepository.existsById(id)) {
+    public void deleteWordSearch(ObjectId id) {
+        if (wordSearchRepository.findById(id).isEmpty()) {
             throw new ResourceNotFoundException("WordSearch not found with id " + id);
         }
-        wordSearchRepository.deleteById(id);
+        wordSearchRepository.deleteById(String.valueOf(id));
     }
 
     public boolean verifyWord(String id, String word) {
@@ -249,15 +236,53 @@ public class WordSearchService {
         return grid;
     }
 
+    // Helper method to check if the word exists starting from (row, col) in a given direction
+    private boolean checkDirection(char[][] grid, String word, int row, int col, int deltaRow, int deltaCol) {
+        int wordLength = word.length();
+        int rows = grid.length;
+        int cols = grid[0].length;
+        char[] wordChars = word.toCharArray();
+
+        for (int i = 0; i < wordLength; i++) {
+            int currentRow = row + i * deltaRow;
+            int currentCol = col + i * deltaCol;
+
+            if (currentRow < 0 || currentRow >= rows || currentCol < 0 || currentCol >= cols) {
+                return false;
+            }
+            if (grid[currentRow][currentCol] != wordChars[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private boolean checkWordInGrid(char[][] grid, String word) {
-        // Implementación para verificar si una palabra está en la sopa de letras
-        // Aquí se puede agregar la lógica para buscar horizontal, vertical y diagonalmente
+        int rows = grid.length;
+        int cols = grid[0].length;
+        int wordLength = word.length();
+        char[] wordChars = word.toCharArray();
+
+        // Iterate through each cell in the grid
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                // Check all 8 possible directions
+                if (checkDirection(grid,word,row, col, 0, 1)) return true; // Horizontal right
+                if (checkDirection(grid,word,row, col, 0, -1)) return true; // Horizontal left
+                if (checkDirection(grid,word,row, col, 1, 0)) return true; // Vertical down
+                if (checkDirection(grid,word,row, col, -1, 0)) return true; // Vertical up
+                if (checkDirection(grid,word,row, col, 1, 1)) return true; // Diagonal down-right
+                if (checkDirection(grid,word,row, col, 1, -1)) return true; // Diagonal down-left
+                if (checkDirection(grid,word,row, col, -1, 1)) return true; // Diagonal up-right
+                if (checkDirection(grid,word,row, col, -1, -1)) return true; // Diagonal up-left
+            }
+        }
+
+        // If the word was not found in any direction
         return false;
     }
 
     private List<String> findAllWords(char[][] grid, List<String> words) {
-        // Implementación para encontrar todas las palabras en la sopa de letras
-        // Se puede usar la lógica de checkWordInGrid para cada palabra en la lista
         return words.stream()
                 .filter(word -> checkWordInGrid(grid, word))
                 .toList();
