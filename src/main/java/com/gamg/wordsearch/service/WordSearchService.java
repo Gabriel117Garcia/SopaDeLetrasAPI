@@ -5,7 +5,6 @@ import com.gamg.wordsearch.config.ResourceNotFoundException;
 import com.gamg.wordsearch.model.WordSearch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;

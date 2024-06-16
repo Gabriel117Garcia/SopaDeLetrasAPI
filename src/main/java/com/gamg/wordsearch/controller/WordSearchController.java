@@ -6,30 +6,29 @@ import com.gamg.wordsearch.service.WordSearchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import javax.validation.Valid;
 import java.util.List;
 
 @RestController
-@RequestMapping("/wordsearch")
+@RequestMapping("/Wordsearch")
 public class WordSearchController {
 
     @Autowired
     private WordSearchService wordSearchService;
 
-    @GetMapping
+    @GetMapping("/Wordsearch/all")
     public List<WordSearch> getAllWordSearches() {
         return wordSearchService.getAllWordSearches();
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/Wordsearch/{id}")
     public ResponseEntity<WordSearch> getWordSearchById(@PathVariable String id) {
         return wordSearchService.getWordSearchById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping
+    @PostMapping("/Wordsearch/create")
     public WordSearch createWordSearch(@Valid @RequestBody WordSearchDTO wordSearchDTO) throws InvalidRequestException {
         WordSearch wordSearch = WordSearch.builder()
                 .rows(wordSearchDTO.getRows())
@@ -39,7 +38,7 @@ public class WordSearchController {
         return wordSearchService.createWordSearch(wordSearch);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/Wordsearch/update/{id}")
     public ResponseEntity<WordSearch> updateWordSearch(@PathVariable String id, @Valid @RequestBody WordSearchDTO wordSearchDTO) {
         WordSearch wordSearchDetails = WordSearch.builder()
                 .rows(wordSearchDTO.getRows())
@@ -49,7 +48,7 @@ public class WordSearchController {
         return ResponseEntity.ok(wordSearchService.updateWordSearch(id, wordSearchDetails));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/Wordsearch/delete/{id}")
     public ResponseEntity<Void> deleteWordSearch(@PathVariable String id) {
         wordSearchService.deleteWordSearch(id);
         return ResponseEntity.noContent().build();
