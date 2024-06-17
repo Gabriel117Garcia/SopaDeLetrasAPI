@@ -1,4 +1,5 @@
-#WordSearch API
+#WordSearchAPI
+
 Descripción del Proyecto
 El proyecto WordSearch API es una aplicación RESTful diseñada para gestionar y resolver sopas de letras. Utiliza Spring Boot para el backend, MongoDB para la base de datos y Docker para la contenedorización. La API proporciona varios servicios, como la creación, actualización, eliminación y verificación de sopas de letras, así como la capacidad de resolver y mezclar las letras en la cuadrícula.
 
@@ -17,7 +18,7 @@ Requisitos del Sistema
 - GitHub para el control de versiones
 - Docker Hub para almacenar las imágenes Docker
 
-Contribuir
+##Contribuir
 Si deseas contribuir al proyecto, por favor realiza un fork del repositorio, crea una rama con tu función o corrección y envía un pull request.
 git checkout -b feature/nueva-funcionalidad
 git commit -m 'Añadir nueva funcionalidad'
