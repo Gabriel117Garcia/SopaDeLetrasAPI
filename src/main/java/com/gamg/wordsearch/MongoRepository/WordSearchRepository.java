@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface WordSearchRepository extends MongoRepository<WordSearch, String> {
     Optional<WordSearch> findById(ObjectId id);
+    void deleteById(ObjectId id);
 }

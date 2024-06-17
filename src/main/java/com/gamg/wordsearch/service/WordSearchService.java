@@ -1,9 +1,7 @@
 package com.gamg.wordsearch.service;
-import com.gamg.wordsearch.DTO.WordSearchDTO;
+
 import com.gamg.wordsearch.MongoRepository.WordSearchRepository;
-import com.gamg.wordsearch.config.InvalidRequestException;
 import com.gamg.wordsearch.config.ResourceNotFoundException;
-import com.gamg.wordsearch.mapper.IWordSearchMapper;
 import com.gamg.wordsearch.model.WordSearch;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,37 +17,32 @@ public class WordSearchService {
     @Autowired
     private WordSearchRepository wordSearchRepository;
 
-    @Autowired
-    private IWordSearchMapper wordSearchMapper;
 
-    public List<WordSearchDTO> getAllWordSearches() {
-        List<WordSearch> wordSearchList = wordSearchRepository.findAll();
-
-        return wordSearchMapper.toDTOs(wordSearchList);
+    public List<WordSearch> getAllWordSearches() {
+        return wordSearchRepository.findAll();
     }
 
-    public Optional<WordSearchDTO> getWordSearchById(String id) {
-        Optional<WordSearch> wordSearchOptional = wordSearchRepository.findById(id);
-        if (wordSearchOptional.isPresent()) {
-            WordSearch wordSearch = wordSearchOptional.get();
-            WordSearchDTO wordSearchDTO = wordSearchMapper.toDTO(wordSearch);
-            return Optional.of(wordSearchDTO);
-        } else {
-            return Optional.empty();
+    public Optional<WordSearch> getWordSearchById(ObjectId id) {
+        return wordSearchRepository.findById(id);
+    }
+
+    public WordSearch createWordSearch(WordSearch wordSearch) {
+        Optional<WordSearch> existingAlbum = wordSearchRepository.findById(wordSearch.getId());
+        if (existingAlbum.isPresent()) {
+            throw new ResourceNotFoundException("WordSearch already exists with id " + wordSearch.getId());
         }
-
-    }
-
-    public WordSearchDTO createWordSearch(WordSearchDTO wordSearchDTO) throws InvalidRequestException {
-        WordSearch wordSearch = wordSearchMapper.toModel(wordSearchDTO);
-        wordSearch = wordSearchRepository.save(wordSearch);
-        return wordSearchMapper.toDTO(wordSearch);
+        return wordSearchRepository.save(wordSearch);
     }
 
 
-    public void updateWordSearch(WordSearchDTO wordSearchDTO) {
-        WordSearch wordSearch = wordSearchMapper.toModel(wordSearchDTO);
-        wordSearchRepository.save(wordSearch);
+    public WordSearch updateWordSearch(ObjectId id,WordSearch wordSearch) {
+        Optional<WordSearch> existingWordsearch = wordSearchRepository.findById(id);
+        if (existingWordsearch.isPresent()) {
+            wordSearch.setId(id);
+            return wordSearchRepository.save(wordSearch);
+        } else {
+            throw new ResourceNotFoundException("WordSearch not found with id " + id);
+        }
     }
 
 

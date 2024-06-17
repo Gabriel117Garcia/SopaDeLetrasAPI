@@ -1,6 +1,7 @@
 package com.gamg.wordsearch.model;
 
 import lombok.*;
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -13,17 +14,17 @@ import java.util.List;
 @Document(collection = "WordSearch")
 public class WordSearch {
     @Id
-    private String id;
+    private ObjectId id;
     private int rows;
     private int cols;
     private char[][] grid;
     private List<String> words;
 
-    public String getId() {
+    public ObjectId getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(ObjectId id) {
         this.id = id;
     }
 

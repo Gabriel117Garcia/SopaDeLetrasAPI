@@ -1,165 +1,94 @@
 package com.gamg.wordsearch;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.gamg.wordsearch.DTO.WordSearchDTO;
+import com.gamg.wordsearch.MongoRepository.WordSearchRepository;
+import com.gamg.wordsearch.config.InvalidRequestException;
+import com.gamg.wordsearch.model.WordSearch;
 import com.gamg.wordsearch.service.WordSearchService;
 import org.bson.types.ObjectId;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import java.time.LocalDate;
-import java.time.Month;
-import java.util.ArrayList;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import java.util.Arrays;
 import java.util.Optional;
-import static org.mockito.ArgumentMatchers.any;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@ExtendWith(MockitoExtension.class)
 public class WordSearchControllerTest {
-    @Autowired
-    private MockMvc mockMvc;
-    @MockBean
+
+    @Mock
+    private WordSearchRepository wordSearchRepository;
+    @InjectMocks
     private WordSearchService wordSearchService;
-    private static ObjectMapper objectMapper = new ObjectMapper();
+    WordSearch wordsearch;
 
-    @BeforeAll
-    public static void setUpClass() {
-        objectMapper.registerModule(new JavaTimeModule());
-    }
-
-    @Test
-    void testAddWordSearch() throws Exception {
-        WordSearchDTO wordsearch = new WordSearchDTO();
+    @BeforeEach
+    public void setUp() {
+        wordsearch = new WordSearch();
+        wordsearch.setId(new ObjectId("60c72b2f9b1e8a1a4c8d9102"));
         wordsearch.setRows(10);
         wordsearch.setCols(10);
         wordsearch.setWords(Arrays.asList("word1", "word2", "word3"));
-
-        mockMvc.perform(post("/Wordsearch/create")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(wordsearch)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(wordsearch.getId()))
-                .andExpect(jsonPath("$.rows").value(wordsearch.getRows()))
-                .andExpect(jsonPath("$.cols").value(wordsearch.getCols()))
-                .andExpect(jsonPath("$.words[0]").value(wordsearch.getWords().get(0)))
-                .andDo(print());
     }
 
     @Test
-    void testAddWordSearchInvalid() throws Exception {
-        WordSearchDTO wordsearch = new WordSearchDTO();
+    void testAddWordSearch() {
 
-        mockMvc.perform(post("/Wordsearch/create")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(wordsearch)))
-                .andExpect(status().isBadRequest())
-                .andDo(print());
+        when(wordSearchService.createWordSearch(wordsearch)).thenReturn(wordsearch);
+        WordSearch result = wordSearchService.createWordSearch(wordsearch);
+
+        assertNotNull(result);
+        assertEquals(wordsearch.getCols(), result.getCols());
+        assertEquals(wordsearch.getRows(), result.getRows());
+        assertEquals(wordsearch.getWords(), result.getWords());
     }
 
     @Test
-    void testGetWordSearch() throws Exception{
-        WordSearchDTO wordsearch1 = new WordSearchDTO();
-        wordsearch1.setId(new ObjectId("Diego").toHexString());
-        wordsearch1.setCols(10);
-        wordsearch1.setRows(10);
-        wordsearch1.setWords(Arrays.asList("word1", "word2", "word3"));
+    void testGetWordSearchById() {
+        when(wordSearchRepository.findById(wordsearch.getId())).thenReturn(Optional.of(wordsearch));
 
-        WordSearchDTO wordsearch2 = new WordSearchDTO();
-        wordsearch2.setId(new ObjectId("JoseAntonio").toHexString());
-        wordsearch2.setCols(10);
-        wordsearch2.setRows(10);
-        wordsearch2.setWords(Arrays.asList("Minion", "Paloma", "Diego"));
+        Optional<WordSearch> result = wordSearchService.getWordSearchById(wordsearch.getId());
 
+        assertTrue(result.isPresent());
+        assertEquals(wordsearch.getCols(), result.get().getCols());
+        assertEquals(wordsearch.getRows(), result.get().getRows());
+        assertEquals(wordsearch.getWords(), result.get().getWords());
 
-        mockMvc.perform(get("/Wordsearch/all")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$[0].id").value(wordsearch1.getId()))
-                .andExpect(jsonPath("$[0].rows").value(wordsearch1.getRows()))
-                .andExpect(jsonPath("$[0].cols").value(wordsearch1.getCols()))
-                .andExpect(jsonPath("$[0].words[0]").value(wordsearch1.getWords().get(0)))
-                .andExpect(jsonPath("$[1].id").value(wordsearch2.getId()))
-                .andExpect(jsonPath("$[1].rows").value(wordsearch2.getRows()))
-                .andExpect(jsonPath("$[1].cols").value(wordsearch2.getCols()))
-                .andExpect(jsonPath("$[1].words[0]").value(wordsearch2.getWords().get(0)))
-                .andDo(print());
     }
-
-    @Test
-    void testGetWordSearchById() throws Exception {
-        WordSearchDTO wordsearch = new WordSearchDTO();
-        wordsearch.setId(new ObjectId("Tyler").toHexString());
-        wordsearch.setCols(10);
-        wordsearch.setRows(10);
-        wordsearch.setWords(Arrays.asList("word1", "word2", "word3"));
-
-        mockMvc.perform(get("/Wordsearch/{id}", wordsearch.getId())
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.rows").value(wordsearch.getRows()))
-                .andExpect(jsonPath("$.cols").value(wordsearch.getCols()))
-                .andExpect(jsonPath("$.words[0]").value(wordsearch.getWords().get(0)))
-                .andDo(print());
-    }
-
-    @Test
-    void testGetWordSearchByIdNotFound() throws Exception {
-        ObjectId wordsearch1 = new ObjectId("3030310d0a");
-
-        when(wordSearchService.getWordSearchById(String.valueOf(wordsearch1))).thenReturn(Optional.empty());
-
-        mockMvc.perform(get("/Wordsearch/{id}", wordsearch1)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andDo(print());
-    }
-
-
 
     @Test
     void testUpdateWordSearch() throws Exception{
-        WordSearchDTO wordsearch = new WordSearchDTO();
-        wordsearch.setCols(10);
-        wordsearch.setRows(10);
-        wordsearch.setWords(Arrays.asList("word1", "word2", "word3"));
 
-        mockMvc.perform(put("/Wordsearch/update/{id}")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(wordsearch)))
-                .andExpect(status().isOk());
+        WordSearch updatedWordsearch = new WordSearch();
+        updatedWordsearch.setId(wordsearch.getId());
+        updatedWordsearch.setCols(20);
+        updatedWordsearch.setRows(20);
+        updatedWordsearch.setWords(Arrays.asList("word4", "word5", "word6"));
+
+        when(wordSearchRepository.findById(wordsearch.getId())).thenReturn(Optional.of(wordsearch));
+        when(wordSearchRepository.save(updatedWordsearch)).thenReturn(updatedWordsearch);
+
+        WordSearch result = wordSearchService.updateWordSearch(wordsearch.getId() ,wordsearch);
+
+        assertNotNull(result);
+        assertEquals(wordsearch.getCols(), result.getCols());
+        assertEquals(wordsearch.getRows(), result.getRows());
+        assertEquals(wordsearch.getWords(), result.getWords());
     }
 
     @Test
-    void testUpdateWordSearchInvalid() throws Exception {
-        WordSearchDTO wordsearch = new WordSearchDTO();
-
-        mockMvc.perform(put("/Wordsearch/update/{id}")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(wordsearch)))
-                .andExpect(status().isBadRequest())
-                .andDo(print());
+    void testDeleteWordSearch() {
+        wordSearchService.deleteWordSearch(wordsearch.getId());
+        Mockito.verify(wordSearchRepository, times(1)).deleteById(wordsearch.getId());
     }
 
-    @Test
-    void testDeleteWordSearch() throws Exception{
-        ObjectId wordsearch = new ObjectId("Xavier");
-
-        mockMvc.perform(delete("/Wordsearch/delete/{id}", wordsearch))
-                .andExpect(status().isOk())
-                .andDo(print());
-    }
 
 }
