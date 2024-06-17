@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'sodamaple/api_wordsearch'
+        DOCKER_IMAGE = 'sodamaple/api_ws_2'
         DOCKER_CREDENTIALS_ID = 'docker-hub-credentials'
     }
 
