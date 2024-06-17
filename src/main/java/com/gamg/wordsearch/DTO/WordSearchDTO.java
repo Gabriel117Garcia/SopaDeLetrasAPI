@@ -1,13 +1,11 @@
 package com.gamg.wordsearch.DTO;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.util.List;
 
 
@@ -15,47 +13,14 @@ import java.util.List;
 @AllArgsConstructor
 @Document("WordSearch")
 @Data
+@Schema(name = "WordSearch", description = "WordSearch model")
 public class WordSearchDTO {
+    @Schema(description = "ID de la WordSearch", example = "60c72b2f9b1e8a1a4c8d9102")
     private ObjectId id;
-    @NotNull
-    @Size(min = 1, max = 20, message = "Las filas deben estar entre 1 y 20")
+    @Schema(description = "Número de filas de la sopa de letras", example = "10")
     private int rows;
-    @NotNull
-    @Size(min = 1, max = 20, message = "Las columnas deben estar entre 1 y 20")
+    @Schema(description = "Número de columnas de la sopa de letras", example = "10")
     private int cols;
-    @NotNull
-    @Size(min = 1, message = "Debe haber al menos una palabra")
+    @Schema(description = "Lista de palabras a buscar en la sopa de letras", example = "[\"word1\", \"word2\", \"word3\"]")
     private List<String> words;
-
-    public ObjectId getId() {
-        return id;
-    }
-
-    public void setId(ObjectId id) {
-        this.id = id;
-    }
-
-    public int getRows() {
-        return rows;
-    }
-
-    public void setRows(int rows) {
-        this.rows = rows;
-    }
-
-    public int getCols() {
-        return cols;
-    }
-
-    public void setCols(int cols) {
-        this.cols = cols;
-    }
-
-    public List<String> getWords() {
-        return words;
-    }
-
-    public void setWords(List<String> words) {
-        this.words = words;
-    }
 }

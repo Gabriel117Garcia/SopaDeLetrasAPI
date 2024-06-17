@@ -47,10 +47,7 @@ public class WordSearchService {
 
 
     public void deleteWordSearch(ObjectId id) {
-        if (wordSearchRepository.findById(id).isEmpty()) {
-            throw new ResourceNotFoundException("WordSearch not found with id " + id);
-        }
-        wordSearchRepository.deleteById(String.valueOf(id));
+        wordSearchRepository.deleteById(id);
     }
 
     public boolean verifyWord(String id, String word) {
@@ -62,7 +59,7 @@ public class WordSearchService {
         throw new ResourceNotFoundException("WordSearch not found with id " + id);
     }
 
-    public WordSearch shuffleGrid(String id) {
+    public WordSearch shuffleGrid(ObjectId id) {
         Optional<WordSearch> wordSearchOpt = wordSearchRepository.findById(id);
         if (wordSearchOpt.isPresent()) {
             WordSearch wordSearch = wordSearchOpt.get();
@@ -72,7 +69,7 @@ public class WordSearchService {
         throw new ResourceNotFoundException("WordSearch not found with id " + id);
     }
 
-    public List<String> solveGrid(String id) {
+    public List<String> solveGrid(ObjectId id) {
         Optional<WordSearch> wordSearchOpt = wordSearchRepository.findById(id);
         if (wordSearchOpt.isPresent()) {
             WordSearch wordSearch = wordSearchOpt.get();

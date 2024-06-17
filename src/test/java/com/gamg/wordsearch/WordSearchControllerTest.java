@@ -1,8 +1,6 @@
 package com.gamg.wordsearch;
 
-import com.gamg.wordsearch.DTO.WordSearchDTO;
 import com.gamg.wordsearch.MongoRepository.WordSearchRepository;
-import com.gamg.wordsearch.config.InvalidRequestException;
 import com.gamg.wordsearch.model.WordSearch;
 import com.gamg.wordsearch.service.WordSearchService;
 import org.bson.types.ObjectId;
@@ -13,10 +11,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.util.Arrays;
 import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
@@ -29,6 +25,7 @@ public class WordSearchControllerTest {
     @InjectMocks
     private WordSearchService wordSearchService;
     WordSearch wordsearch;
+    WordSearch updatedWordsearch;
 
     @BeforeEach
     public void setUp() {
@@ -37,6 +34,12 @@ public class WordSearchControllerTest {
         wordsearch.setRows(10);
         wordsearch.setCols(10);
         wordsearch.setWords(Arrays.asList("word1", "word2", "word3"));
+
+        updatedWordsearch = new WordSearch();
+        updatedWordsearch.setId(wordsearch.getId());
+        updatedWordsearch.setCols(20);
+        updatedWordsearch.setRows(20);
+        updatedWordsearch.setWords(Arrays.asList("word4", "word5", "word6"));
     }
 
     @Test
@@ -50,6 +53,7 @@ public class WordSearchControllerTest {
         assertEquals(wordsearch.getRows(), result.getRows());
         assertEquals(wordsearch.getWords(), result.getWords());
     }
+
 
     @Test
     void testGetWordSearchById() {
@@ -65,23 +69,17 @@ public class WordSearchControllerTest {
     }
 
     @Test
-    void testUpdateWordSearch() throws Exception{
-
-        WordSearch updatedWordsearch = new WordSearch();
-        updatedWordsearch.setId(wordsearch.getId());
-        updatedWordsearch.setCols(20);
-        updatedWordsearch.setRows(20);
-        updatedWordsearch.setWords(Arrays.asList("word4", "word5", "word6"));
+    void testUpdateWordSearch(){
 
         when(wordSearchRepository.findById(wordsearch.getId())).thenReturn(Optional.of(wordsearch));
         when(wordSearchRepository.save(updatedWordsearch)).thenReturn(updatedWordsearch);
 
-        WordSearch result = wordSearchService.updateWordSearch(wordsearch.getId() ,wordsearch);
+        WordSearch result = wordSearchService.updateWordSearch(wordsearch.getId() ,updatedWordsearch);
 
         assertNotNull(result);
-        assertEquals(wordsearch.getCols(), result.getCols());
-        assertEquals(wordsearch.getRows(), result.getRows());
-        assertEquals(wordsearch.getWords(), result.getWords());
+        assertEquals(updatedWordsearch.getCols(), result.getCols());
+        assertEquals(updatedWordsearch.getRows(), result.getRows());
+        assertEquals(updatedWordsearch.getWords(), result.getWords());
     }
 
     @Test
@@ -89,6 +87,4 @@ public class WordSearchControllerTest {
         wordSearchService.deleteWordSearch(wordsearch.getId());
         Mockito.verify(wordSearchRepository, times(1)).deleteById(wordsearch.getId());
     }
-
-
 }
