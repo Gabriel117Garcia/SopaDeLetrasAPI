@@ -50,7 +50,7 @@ public class WordSearchService {
         wordSearchRepository.deleteById(id);
     }
 
-    public boolean verifyWord(String id, String word) {
+    public boolean verifyWord(ObjectId id, String word) {
         Optional<WordSearch> wordSearchOpt = wordSearchRepository.findById(id);
         if (wordSearchOpt.isPresent()) {
             WordSearch wordSearch = wordSearchOpt.get();

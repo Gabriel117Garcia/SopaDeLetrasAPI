@@ -110,8 +110,8 @@ public class WordSearchController {
             @ApiResponse(responseCode = "404", description = "Palabra no encontrada",
                     content = @Content) })
     @PostMapping("/{id}/verify")
-    public ResponseEntity<Boolean> verifyWord(@Parameter(description = "ID de la WordSearch") @PathVariable ObjectId id) {
-        wordSearchService.deleteWordSearch(id);
+    public ResponseEntity<Boolean> verifyWord(@Parameter(description = "ID de la WordSearch") @PathVariable ObjectId id, @RequestBody String word) {
+        wordSearchService.verifyWord(id, word);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
